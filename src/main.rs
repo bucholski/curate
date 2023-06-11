@@ -8,19 +8,20 @@ use ureq::{self};
 #[command(about = "Simple currency rate lookup")]
 
 struct Cli {
-    #[arg(short, long, default_value_t = String::from("EUR"))]
+    // #[arg(short, long, default_value_t = String::from("EUR"))]
+    // #[arg(default_value_t = String::from("EUR"))]
     /// Code of the currency to convert from
-    currency: String,
-    #[arg(short, long, default_value_t = 1.0)]
+    currency: Option<String>,
+    // #[arg(short, long, default_value_t = 1.0)]
     /// Amount of the currency to convert from
-    amount: f64,
+    amount: Option<f64>,
 }
 
 fn main() {
     let cli = Cli::parse();
 
-    let amount: f64 = cli.amount;
-    let currency: &str = &cli.currency;
+    let amount: f64 = cli.amount.unwrap_or(1.0);
+    let currency: &str = &cli.currency.unwrap_or(String::from("EUR"));
     match get_rate(currency) {
         Ok(rate) => print_output(rate, amount, currency),
         Err(e) => println!("Error when contacting the API: {e}"),
