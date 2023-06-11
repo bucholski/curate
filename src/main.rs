@@ -22,6 +22,7 @@ fn main() {
 
     let amount: f64 = cli.amount.unwrap_or(1.0);
     let currency: &str = &cli.currency.unwrap_or(String::from("EUR"));
+
     match get_rate(currency) {
         Ok(rate) => print_output(rate, amount, currency),
         Err(e) => println!("Error when contacting the API: {e}"),
