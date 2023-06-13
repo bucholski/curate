@@ -8,12 +8,7 @@ use ureq::{self};
 #[command(about = "Simple currency rate lookup")]
 
 struct Cli {
-    // #[arg(short, long, default_value_t = String::from("EUR"))]
-    // #[arg(default_value_t = String::from("EUR"))]
-    /// Code of the currency to convert from
     currency: Option<String>,
-    // #[arg(short, long, default_value_t = 1.0)]
-    /// Amount of the currency to convert from
     amount: Option<f64>,
 }
 
@@ -32,7 +27,7 @@ fn main() {
 fn get_rate(currency: &str) -> Result<serde_json::Value, ureq::Error> {
     let url = format!("https://api.nbp.pl/api/exchangerates/rates/a/{currency}/?format=json");
     let rate: serde_json::Value = ureq::get(&url).call()?.into_json()?;
-    // println!("{:#?}", rate); //handy to see what you get from the api
+    // println!("{:#?}", rate); //see what you get from the api
     Ok(rate)
 }
 
