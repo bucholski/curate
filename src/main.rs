@@ -49,13 +49,16 @@ fn print_output(rate: Option<f64>, amount: f64, currency: &str) {
         None => println!("Error - rate not a valid f64"),
     }
 }
-
+//Volatile stuff below
 fn check_config() {
     let binding = BaseDirs::new().unwrap();
     let mut config_path: PathBuf = binding.config_dir().to_path_buf();
     config_path.push("curate");
     println!("{:?}", config_path);
-
-    fs::DirBuilder::new().create(config_path).unwrap();
+    if config_path.is_dir() {
+        println!("This directory already exists!");
+    } else {
+        fs::DirBuilder::new().create(config_path).unwrap();
+    }
 }
 // todo!("BLOOMBERG API, SERDE_JSON POINTERS");
