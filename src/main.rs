@@ -1,5 +1,6 @@
 use clap::Parser;
 use directories::BaseDirs;
+use serde_json;
 use std::{fs, io::Write, path::PathBuf};
 use ureq::{self};
 
@@ -49,7 +50,9 @@ fn print_output(rate: Option<f64>, amount: f64, currency: &str) {
         None => println!("Error - rate not a valid f64"),
     }
 }
+
 //Volatile stuff below
+
 fn check_config() {
     let binding = BaseDirs::new().unwrap();
     let mut config_dir: PathBuf = binding.config_dir().to_path_buf();
@@ -60,8 +63,18 @@ fn check_config() {
         fs::DirBuilder::new().create(config_dir).unwrap();
     }
     if !config_file.is_file() {
+        let default = serde_json::json!({
+          "api_url":"https://api.nbp.pl/api/exchangerates/rates/a/{currency}/?format=json",
+          "rate_path":"/rates/0/mid"
+        });
         let mut config = fs::File::create(config_file).unwrap();
-        config.write_all("test".as_bytes()).unwrap();
+        config
+            .write_all(
+                serde_json::ser::to_string_pretty(&default)
+                    .unwrap()
+                    .as_bytes(),
+            )
+            .unwrap();
     }
 }
 // todo!("BLOOMBERG API");
