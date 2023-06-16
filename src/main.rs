@@ -1,6 +1,6 @@
 use clap::Parser;
 use directories::BaseDirs;
-use std::{fs, path::PathBuf};
+use std::{fs, io::Write, path::PathBuf};
 use ureq::{self};
 
 #[derive(Parser, Debug)]
@@ -52,13 +52,16 @@ fn print_output(rate: Option<f64>, amount: f64, currency: &str) {
 //Volatile stuff below
 fn check_config() {
     let binding = BaseDirs::new().unwrap();
-    let mut config_path: PathBuf = binding.config_dir().to_path_buf();
-    config_path.push("curate");
-    println!("{:?}", config_path);
-    if config_path.is_dir() {
-        println!("This directory already exists!");
-    } else {
-        fs::DirBuilder::new().create(config_path).unwrap();
+    let mut config_dir: PathBuf = binding.config_dir().to_path_buf();
+    config_dir.push("curate");
+    let mut config_file = config_dir.clone();
+    config_file.push("config");
+    if !config_dir.is_dir() {
+        fs::DirBuilder::new().create(config_dir).unwrap();
+    }
+    if !config_file.is_file() {
+        let mut config = fs::File::create(config_file).unwrap();
+        config.write_all("test".as_bytes()).unwrap();
     }
 }
-// todo!("BLOOMBERG API, SERDE_JSON POINTERS");
+// todo!("BLOOMBERG API");
