@@ -77,7 +77,7 @@ fn verify_config(config_dir: PathBuf, config_file: PathBuf) -> Result<(), Box<dy
 
         Ok(())
     } else {
-        Ok(())
+        Ok(todo!())
     }
 }
 
