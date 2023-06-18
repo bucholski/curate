@@ -18,6 +18,7 @@ struct Cli {
 fn main() {
     let cli = Cli::parse();
     //config location
+    //TODO - Should I use consts?
     let binding = BaseDirs::new().unwrap();
     let mut config_dir: PathBuf = binding.config_dir().to_path_buf();
     config_dir.push("curate");
@@ -42,6 +43,7 @@ fn main() {
 }
 
 fn fetch_data(currency: &str) -> Result<serde_json::Value, ureq::Error> {
+    //TODO - Large error - implement from Box or swap to reqwest?
     let url = format!("https://api.nbp.pl/api/exchangerates/rates/a/{currency}/?format=json");
     let data: serde_json::Value = ureq::get(&url).call()?.into_json()?;
     // println!("{:#?}", data); //see what you get from the api
