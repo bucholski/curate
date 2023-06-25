@@ -1,8 +1,23 @@
-use clap::Parser;
+pub mod api_actions;
+pub mod config_actions;
+use clap::{arg, Parser};
+use config_actions::Config;
 use directories::BaseDirs;
+// use serde::{Deserialize, Serialize};
 use serde_json;
-use std::{error::Error, fs, io::Write, path::PathBuf};
+use std::{error::Error, path::PathBuf};
 use ureq::{self};
+
+// #[derive(Debug, Serialize, Deserialize)]
+// struct Config {
+//     api_url: String,
+//     rate_path: String,
+//     // TODO - implement the fields below
+//     #[serde(default = "default_currency")]
+//     default_currency: String,
+//     #[serde(default = "default_amount")]
+//     default_amount: f64,
+// }
 
 #[derive(Parser, Debug)]
 #[command(name = "curate")]
@@ -11,41 +26,51 @@ use ureq::{self};
 #[command(about = "Simple currency rate lookup")]
 
 struct Cli {
+    ///ISO 4217 currency code
     currency: Option<String>,
+
+    //TODO change amount to something more precise than f64 (currency crate?)
     amount: Option<f64>,
+    ///set your own api URL with "{currency}" in place where currency code goes
+    #[arg(short, long, value_name = "URL")]
+    url: Option<String>,
+    ///set path to value of currency in returned JSON as in "/Object/Array/0/value_key"
+    #[arg(short, long, value_name = "PATH")]
+    pointer: Option<String>,
 }
 
 fn main() {
     let cli = Cli::parse();
-    //config location
-    //TODO - Should I use consts?
-    let binding = BaseDirs::new().unwrap();
-    let mut config_dir: PathBuf = binding.config_dir().to_path_buf();
-    config_dir.push("curate");
-    let mut config_file = config_dir.clone();
-    config_file.push("config");
-
-    if let Err(e) = verify_config(config_dir, config_file) {
-        println!("Couldn't create default config file - Error: {e}");
+    //config location //TODO - Should I use statics?
+    let binding = match BaseDirs::new() {
+        Some(dir) => dir,
+        None => panic!("Couldn't find a viable home directory to put config in"),
     };
-    //START###THIS WILL BE INPUT EITHER FROM ARGUMENTS OR A CONFIG FILE
-    let api_path = "/rates/0/mid";
-    let amount: f64 = cli.amount.unwrap_or(1.0);
-    let currency: &str = &cli.currency.unwrap_or(String::from("EUR"));
-    //END####THIS WILL BE INPUT EITHER FROM ARGUMENTS OR A CONFIG FILE
 
-    match fetch_data(currency) {
-        // Ok(rate) => print_output(rate, amount, currency),
-        Ok(data) => print_output(get_rate(&data, api_path), amount, currency),
+    let config_dir: PathBuf = [binding.config_dir().to_path_buf(), "curate".into()]
+        .iter()
+        .collect();
+    // config_dir.push("curate");
+    let config_file: PathBuf = [&config_dir, &"config".into()].iter().collect();
 
-        Err(e) => println!("Error when contacting the API: {e}"),
+    if let Err(e) = config_actions::verify_config(&config_dir, &config_file) {
+        println!("Config file error: {e}");
+    };
+    let config: Config = config_actions::get_config(config_file).unwrap();
+
+    let amount: f64 = cli.amount.unwrap_or(config.default_amount);
+    let currency: &str = &cli.currency.unwrap_or(config.default_currency);
+
+    match fetch_data(currency, &config.api_url) {
+        Ok(data) => print_output(get_rate(&data, &config.rate_path), amount, currency),
+        Err(e) => println!("API error: {e}"),
     }
 }
 
-fn fetch_data(currency: &str) -> Result<serde_json::Value, ureq::Error> {
-    //TODO - Large error - implement from Box or swap to reqwest?
-    let url = format!("https://api.nbp.pl/api/exchangerates/rates/a/{currency}/?format=json");
-    let data: serde_json::Value = ureq::get(&url).call()?.into_json()?;
+fn fetch_data(currency: &str, api_url: &str) -> Result<serde_json::Value, Box<dyn Error>> {
+    let url = api_url.replace("{currency}", currency);
+    let data = ureq::get(&url).call()?.into_json()?;
+
     // println!("{:#?}", data); //see what you get from the api
     Ok(data)
 }
@@ -60,28 +85,3 @@ fn print_output(rate: Option<f64>, amount: f64, currency: &str) {
         None => println!("Error - rate not a valid f64"),
     }
 }
-
-//Volatile stuff below
-
-fn verify_config(config_dir: PathBuf, config_file: PathBuf) -> Result<(), Box<dyn Error>> {
-    if !config_dir.is_dir() {
-        if let Err(e) = fs::DirBuilder::new().create(config_dir) {
-            println!("Couldn't create config directory - Error: {e}")
-        }
-    }
-    if !config_file.is_file() {
-        let default = serde_json::json!({
-          "api_url":"https://api.nbp.pl/api/exchangerates/rates/a/{currency}/?format=json",
-          "rate_path":"/rates/0/mid"
-        });
-        let mut config: std::fs::File = fs::File::create(config_file)?;
-        config.write_all(serde_json::ser::to_string_pretty(&default)?.as_bytes())?;
-
-        Ok(())
-    } else {
-        //TODO implement use of existing config
-        Ok(())
-    }
-}
-
-// todo!("BLOOMBERG API");
