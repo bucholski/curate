@@ -4,4 +4,4 @@
 
 Made for a friend who asked me for a simple currency converter in CLI.
 
-As I achieved my goal, the project is discontinued despite there being plenty room for improvements.
+As I achieved my goal, the project is discontinued. 
