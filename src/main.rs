@@ -48,3 +48,5 @@ fn try_print(rate: Option<f64>, amount: f64, currency: &str) {
         None => println!("Error - rate not a valid f64"),
     }
 }
+
+//TODO - change api to more universal one, set cache, give user ability to change cache lifespan

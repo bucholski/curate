@@ -2,6 +2,6 @@
 
 ## A simple currency converter.
 
-Work in progress
+Made for a friend who asked me for a simple currency converter in CLI.
 
-The goal is to make it configurable, so you can use your own API.
+As I achieved my goal, the project is discontinued despite there being plenty room for improvements.

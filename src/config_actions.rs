@@ -76,6 +76,14 @@ fn get_default_amount() -> f64 {
     }
 }
 
+fn set_api_url() -> String {
+    todo!()
+}
+
+fn set_value_path() -> String {
+    todo!()
+}
+
 fn set_default_currency() -> String {
     todo!()
 }
